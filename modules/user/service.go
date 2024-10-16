@@ -103,5 +103,5 @@ func SignIn(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		Token: jwtToken,
 	}
 
-	responses.ResponseWithJSON(w, response, http.StatusCreated)
+	responses.ResponseWithJSON(w, response, http.StatusOK)
 }

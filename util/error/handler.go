@@ -3,6 +3,7 @@ package error
 import (
 	"log"
 	"net/http"
+	"wishtournament/util/responses"
 )
 
 func HttpResponse(w http.ResponseWriter, message string, statusCode int) {
@@ -13,5 +14,12 @@ func HttpResponse(w http.ResponseWriter, message string, statusCode int) {
 		message = "An unexpected error occurred"
 	}
 	log.Println("Error: " + message)
-	http.Error(w, message, statusCode)
+	response := struct {
+		Message   string `json:"message"`
+		ErrorCode int    `json:"errorCode"`
+	}{
+		Message:   message,
+		ErrorCode: statusCode,
+	}
+	responses.ResponseWithJSON(w, response, statusCode)
 }

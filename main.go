@@ -1,34 +1,24 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"wishtournament/modules/dev"
 	"wishtournament/modules/user"
 	"wishtournament/util/auth"
+	"wishtournament/util/db"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
-
-func initDB() {
-	var err error
-	db, err = sql.Open("mysql", "root:root@tcp(localhost:3306)/wishticket")
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func main() {
 
-	initDB()
+	dbConnection := db.InitDB()
 	router := http.NewServeMux()
 
-	user.RegisterUserRoute(router, db)
-	dev.RegisterTicketRoute(router, db)
+	user.RegisterUserRoute(router, dbConnection)
+	dev.RegisterTicketRoute(router, dbConnection)
 
 	handler := corsMiddleware(router)
 
