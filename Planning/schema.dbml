@@ -1,0 +1,84 @@
+Table users {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  username varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table tournaments {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  name varchar [not null]
+  host_id UUID [not null]  // Reference to users.id
+  point_type varchar [not null, note: 'points, time, distance']
+  scoring_method varchar [not null, note: 'highest or lowest']
+  can_tie boolean [default: false]
+  start_date_time timestamp [not null]
+  is_started boolean [default: false]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table teams {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  name varchar [not null]
+  tournament_id UUID [not null]  // Reference to tournaments.id
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table players {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  name varchar [not null]
+  is_registered boolean [default: false]
+  user_id UUID [note: 'Nullable for anonymous players']  // Nullable reference to users.id
+  team_id UUID [not null]  // Reference to teams.id
+  tournament_id UUID [not null]  // Reference to tournaments.id
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table brackets {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  tournament_id UUID [not null]  // Reference to tournaments.id
+  type varchar [not null, note: 'single_elimination or others']
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table rounds {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  bracket_id UUID [not null]  // Reference to brackets.id
+  round_number int [not null]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table games {
+  id UUID [pk, default: 'uuid_generate_v4()']
+  round_id UUID [not null]  // Reference to rounds.id
+  team1_id UUID [not null]  // Reference to teams.id
+  team2_id UUID [not null]  // Reference to teams.id
+  team1_score float [default: 0]
+  team2_score float [default: 0]
+  winner_id UUID  // Nullable reference to teams.id
+  is_tie boolean [default: false]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Ref: tournaments.host_id > users.id
+
+Ref: teams.tournament_id > tournaments.id
+
+Ref: players.user_id > users.id
+
+Ref: players.team_id > teams.id
+
+Ref: players.tournament_id > tournaments.id
+
+Ref: brackets.tournament_id > tournaments.id
+
+Ref: rounds.bracket_id > brackets.id
+
+Ref: games.round_id > rounds.id
+
+Ref: games.team1_id > teams.id [delete: cascade] // Team 1 relationship
+
+Ref: games.team2_id > teams.id [delete: cascade] // Team 2 relationship
+
+Ref: games.winner_id > teams.id [delete: set null] // Winner relationship

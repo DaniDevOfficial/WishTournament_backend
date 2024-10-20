@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"wishtournament/modules/dev"
@@ -15,7 +16,7 @@ import (
 func main() {
 
 	dbConnection := db.InitDB()
-	router := http.NewServeMux()
+	router := mux.NewRouter()
 
 	user.RegisterUserRoute(router, dbConnection)
 	dev.RegisterTicketRoute(router, dbConnection)

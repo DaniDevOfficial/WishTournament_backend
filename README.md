@@ -30,13 +30,15 @@ This is the backend for the WishTournament app, which tracks teams and players i
 
 ### User-Related Endpoints
 
-| **Use Case**                | **Endpoint**                     | **Method** |
-|-----------------------------|----------------------------------|------------|
-| CRUD an Account             | `/users`                         | POST, GET, PUT, DELETE |
-| CRUD a Tournament           | `/tournaments`                   | POST, GET, PUT, DELETE |
-| Get invited to a Tournament | `/tournaments/:id/invite`        | POST |
-| Leave a Tournament          | `/tournaments/:id/leave`         | POST |
-| Follow other users          | `/users/:id/follow`              | POST |
+| **Use Case**               | **Endpoint**              | **Method** |
+|----------------------------|---------------------------|------------|
+| RUD an Account             | `/users`                  | GET, PUT, DELETE |
+| Sign in to Account         | `/auth/signin`            | POST |
+| Sign Up to an Account      | `/auth/signup`            | POST |
+| CRUD a Tournament          | `/tournaments`            | POST, GET, PUT, DELETE |
+| Get invited to a Tournament | `/tournaments/:id/invite` | POST |
+| Leave a Tournament         | `/tournaments/:id/leave`  | POST |
+| Follow other users         | `/users/:id/follow`       | POST |
 
 ### Hoster-Related Endpoints
 

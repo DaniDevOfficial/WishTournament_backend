@@ -2,26 +2,39 @@ package user
 
 import (
 	"database/sql"
-	"log"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func RegisterUserRoute(router *http.ServeMux, db *sql.DB) {
-
-	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		handleUsers(w, r, db)
-	})
-	router.HandleFunc("/users/login", func(w http.ResponseWriter, r *http.Request) {
-		handleLogin(w, r, db)
-	})
+func RegisterUserRoute(router *mux.Router, db *sql.DB) {
+	registerUserRoutes(router, db)
 }
 
-func handleUsers(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	log.Println(r.Body)
-
-	if r.Method == http.MethodPost {
+func registerUserRoutes(router *mux.Router, db *sql.DB) {
+	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		CreateNewUser(w, r, db)
-	}
+	}).Methods(http.MethodPost)
+
+	router.HandleFunc("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		// GetUserById(w, r, db)
+	}).Methods(http.MethodGet)
+
+	router.HandleFunc("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		// UpdateUser(w, r, db)
+	}).Methods(http.MethodPut)
+
+	router.HandleFunc("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		// DeleteUser(w, r, db)
+	}).Methods(http.MethodDelete)
+}
+
+func registerAuthRoutes(router *mux.Router, db *sql.DB) {
+	router.HandleFunc("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		// DeleteUser(w, r, db)
+	}).Methods(http.MethodDelete)
+	router.HandleFunc("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		DeleteUser(w, r, db)
+	}).Methods(http.MethodDelete)
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
