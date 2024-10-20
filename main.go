@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"wishtournament/modules/dev"
 	"wishtournament/modules/user"
 	"wishtournament/util/auth"
 	"wishtournament/util/db"
@@ -16,10 +15,10 @@ import (
 func main() {
 
 	dbConnection := db.InitDB()
-	router := mux.NewRouter()
+	router := gin.Default()
 
 	user.RegisterUserRoute(router, dbConnection)
-	dev.RegisterTicketRoute(router, dbConnection)
+	// dev.RegisterDevRoute(router, dbConnection)
 
 	handler := corsMiddleware(router)
 
