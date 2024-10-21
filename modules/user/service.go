@@ -17,12 +17,15 @@ func CreateNewUser(c *gin.Context, db *sql.DB) {
 
 	var newUser RequestNewUser
 	if err := c.ShouldBindJSON(&newUser); err != nil {
+		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error decoding request"})
 		return
 	}
 
 	userId, err := GetUserIdByName(newUser.Username, db)
 	if err != nil && err != sql.ErrNoRows {
+		log.Println(err)
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking for users"})
 		return
 	}
@@ -44,14 +47,16 @@ func CreateNewUser(c *gin.Context, db *sql.DB) {
 		password_hash: hashedPassword,
 	}
 
-	id, err := CreateUserInDB(userInDB, db)
+	id, uuid, err := CreateUserInDB(userInDB, db)
 	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error Creating User"})
 		return
 	}
 	jwtUserData := jwt.JWTUser{
 		Username: userInDB.username,
 		UserId:   int(id),
+		UUID:     uuid,
 	}
 	jwtToken, err := jwt.CreateToken(jwtUserData)
 	if err != nil {

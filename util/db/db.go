@@ -15,7 +15,6 @@ func InitDB() *sql.DB {
 		log.Fatal(err)
 	}
 
-	// Optionally, ping the database to check the connection
 	err = db.Ping()
 	if err != nil {
 		log.Fatal("Cannot connect to the database:", err)
