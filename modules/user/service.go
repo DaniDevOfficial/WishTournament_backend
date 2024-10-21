@@ -3,6 +3,7 @@ package user
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"wishtournament/util/error"
@@ -11,31 +12,29 @@ import (
 	"wishtournament/util/responses"
 )
 
-func CreateNewUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func CreateNewUser(c *gin.Context, db *sql.DB) {
 	log.Println("Users called")
 
 	var newUser RequestNewUser
-	err := json.NewDecoder(r.Body).Decode(&newUser)
-
-	if err != nil {
-		error.HttpResponse(w, "Error Decoding Request", http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error decoding request"})
 		return
 	}
 
 	userId, err := GetUserIdByName(newUser.Username, db)
 	if err != nil && err != sql.ErrNoRows {
-		error.HttpResponse(w, "Error checking for users", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking for users"})
 		return
 	}
 
 	if userId != -1 {
-		error.HttpResponse(w, "User Does already exist", http.StatusConflict)
+		c.JSON(http.StatusConflict, gin.H{"error": "User Does already exist"})
 		return
 	}
 
 	hashedPassword, err := hashing.HashPassword(newUser.Password)
 	if err != nil {
-		error.HttpResponse(w, "Hashing error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Hashing error"})
 		return
 	}
 
@@ -47,16 +46,16 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	id, err := CreateUserInDB(userInDB, db)
 	if err != nil {
-		error.HttpResponse(w, "Error Creating User", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error Creating User"})
 		return
 	}
 	jwtUserData := jwt.JWTUser{
 		Username: userInDB.username,
-		UserId:   id,
+		UserId:   int(id),
 	}
 	jwtToken, err := jwt.CreateToken(jwtUserData)
 	if err != nil {
-		error.HttpResponse(w, "Error creating JWT", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating JWT"})
 		return
 	}
 	response := struct {
@@ -64,7 +63,7 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}{
 		Token: jwtToken,
 	}
-	responses.ResponseWithJSON(w, response, http.StatusCreated)
+	c.JSON(http.StatusInternalServerError, response)
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request, db *sql.DB) {

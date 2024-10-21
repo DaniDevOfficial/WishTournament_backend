@@ -1,7 +1,3 @@
-DROP DATABASE IF EXISTS wishtournament;
-CREATE DATABASE wishtournament;
-\c wishtournament;
-
 -- UUID generation (PostgreSQL specific)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

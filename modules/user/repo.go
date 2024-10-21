@@ -39,21 +39,21 @@ func GetUserPasswordHashByName(username string, db *sql.DB) (string, error) {
 	return passwordHash, err
 }
 
-func CreateUserInDB(userData DBNewUser, db *sql.DB) (string, error) {
+func CreateUserInDB(userData DBNewUser, db *sql.DB) (int64, error) {
 	sql := "INSERT INTO user (username, email, password_hash) VALUES (?, ?, ?)"
 	stmt, err := db.Prepare(sql)
 
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 	result, err := stmt.Exec(userData.username, userData.email, userData.password_hash)
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 
 	return id, nil
