@@ -19,15 +19,16 @@ func GetUserByName(username string, db *sql.DB) (UserFromDB, error) {
 	sql := `SELECT 
 				username,
 				email,
-				password_hash,
-				user_id
+				password,
+				id,
+				uuid
 			FROM
-				user
+				users
 			WHERE
-				username = ?`
+				username = $1`
 	row := db.QueryRow(sql, username)
 	var userData UserFromDB
-	err := row.Scan(&userData.username, &userData.email, &userData.password_hash, &userData.user_id)
+	err := row.Scan(&userData.username, &userData.email, &userData.password_hash, &userData.user_id, &userData.uuid)
 	return userData, err
 }
 

@@ -13,5 +13,7 @@ func registerTestRoutes(router *gin.Engine, db *sql.DB) {
 	router.POST("/test/jwtAuth", func(c *gin.Context) {
 		CheckValidJWT(c)
 	})
-
+	router.GET("/test/getAllUsers", func(c *gin.Context) {
+		CheckValidJWT(c)
+	})
 }

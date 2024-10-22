@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"wishtournament/util/jwt"
@@ -28,4 +29,8 @@ func CheckValidJWT(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "its a faulty jwt"})
 	}
+}
+
+func GetAllUsers(c *gin.Context, db *sql.DB) {
+
 }

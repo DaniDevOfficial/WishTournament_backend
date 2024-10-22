@@ -2,14 +2,11 @@ package user
 
 import (
 	"database/sql"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"wishtournament/util/error"
 	"wishtournament/util/hashing"
 	"wishtournament/util/jwt"
-	"wishtournament/util/responses"
 )
 
 func CreateNewUser(c *gin.Context, db *sql.DB) {
@@ -71,33 +68,35 @@ func CreateNewUser(c *gin.Context, db *sql.DB) {
 	c.JSON(http.StatusInternalServerError, response)
 }
 
-func SignIn(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func SignIn(c *gin.Context, db *sql.DB) {
 
 	var credentials SignInCredentials
-	err := json.NewDecoder(r.Body).Decode(&credentials)
-	if err != nil {
-		error.HttpResponse(w, "Error Decoding Request", http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&credentials); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error decoding request"})
 		return
 	}
 
 	userData, err := GetUserByName(credentials.Username, db)
 	if err != nil {
-		error.HttpResponse(w, "Wrong Password or Username", http.StatusBadRequest)
+		log.Println(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Wrong USERNAME Or Password"})
 		return
 	}
 
 	if !hashing.CheckHashedString(userData.password_hash, credentials.Password) {
-		error.HttpResponse(w, "Wrong Password or Username", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Wrong Username Or Password"})
 		return
 	}
 
 	jwtUserData := jwt.JWTUser{
 		Username: userData.username,
 		UserId:   userData.user_id,
+		UUID:     userData.uuid,
 	}
 	jwtToken, err := jwt.CreateToken(jwtUserData)
 	if err != nil {
-		error.HttpResponse(w, "Error creating JWT", http.StatusInternalServerError)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Error creating JWT"})
 		return
 	}
 
@@ -106,6 +105,5 @@ func SignIn(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}{
 		Token: jwtToken,
 	}
-
-	responses.ResponseWithJSON(w, response, http.StatusOK)
+	c.JSON(http.StatusOK, response)
 }

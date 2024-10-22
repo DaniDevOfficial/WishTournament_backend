@@ -24,7 +24,7 @@ func registerAuthRoutes(router *gin.Engine, db *sql.DB) {
 		CreateNewUser(c, db)
 	})
 	router.POST("/auth/signin", func(c *gin.Context) {
-		// SignIn(c, db)
+		SignIn(c, db)
 	})
 
 }

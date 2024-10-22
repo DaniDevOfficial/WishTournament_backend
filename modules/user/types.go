@@ -7,8 +7,8 @@ type RequestNewUser struct {
 }
 
 type DBNewUser struct {
-	username     string
-	email        string
+	username      string
+	email         string
 	password_hash string
 }
 
@@ -23,8 +23,9 @@ type SignInCredentials struct {
 }
 
 type UserFromDB struct {
-	user_id      int
-	username     string
-	email        string
+	user_id       int
+	uuid          string
+	username      string
+	email         string
 	password_hash string
 }
