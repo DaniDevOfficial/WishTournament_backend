@@ -42,11 +42,9 @@ func GetUserPasswordHashByName(username string, db *sql.DB) (string, error) {
 func CreateUserInDB(userData DBNewUser, db *sql.DB) (int64, string, error) {
 	sql := "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, uuid"
 
-	// No need for Prepare, you can use QueryRow directly
 	var id int64
 	var uuid string
 
-	// Execute the query and scan the returned id and uuid
 	err := db.QueryRow(sql, userData.username, userData.email, userData.password_hash).Scan(&id, &uuid)
 	if err != nil {
 		return -1, "", err

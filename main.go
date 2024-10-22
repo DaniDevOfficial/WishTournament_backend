@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"wishtournament/modules/dev"
 	"wishtournament/modules/user"
 	"wishtournament/util/auth"
 	"wishtournament/util/db"
@@ -18,7 +19,7 @@ func main() {
 	router := gin.Default()
 
 	user.RegisterUserRoute(router, dbConnection)
-	// dev.RegisterDevRoute(router, dbConnection)
+	dev.RegisterDevRoutes(router, dbConnection)
 
 	handler := corsMiddleware(router)
 

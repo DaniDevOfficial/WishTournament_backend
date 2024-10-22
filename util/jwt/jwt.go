@@ -37,9 +37,8 @@ func VerifyToken(tokenString string) (bool, error) {
 	}
 
 	if !token.Valid {
-		return true, nil
+		return false, nil
 	}
-
 	return true, nil
 }
 

@@ -1,21 +1,17 @@
 package dev
 
-/**
 import (
 	"database/sql"
-	"log"
-	"net/http"
-	"wishtournament/util/hashing"
+	"github.com/gin-gonic/gin"
 )
 
-func RegisterDevRoute(router *mux.Router, db *sql.DB) {
-	baseRoute := "/dev"
-	router.HandleFunc(baseRoute, func(w http.ResponseWriter, r *http.Request) {
-		handleEncryptPassword(w, r, db)
+func RegisterDevRoutes(router *gin.Engine, db *sql.DB) {
+	registerTestRoutes(router, db)
+}
+func registerTestRoutes(router *gin.Engine, db *sql.DB) {
+
+	router.POST("/test/jwtAuth", func(c *gin.Context) {
+		CheckValidJWT(c)
 	})
 
-}
-
-func handleEncryptPassword(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	log.Println(hashing.HashPassword("admin"))
 }
