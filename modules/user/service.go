@@ -2,15 +2,17 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strings"
 	"wishtournament/util/hashing"
 	"wishtournament/util/jwt"
 )
 
+/** AuthService */
 func CreateNewUser(c *gin.Context, db *sql.DB) {
-	log.Println("Users called")
 
 	var newUser RequestNewUser
 	if err := c.ShouldBindJSON(&newUser); err != nil {
@@ -106,4 +108,59 @@ func SignIn(c *gin.Context, db *sql.DB) {
 		Token: jwtToken,
 	}
 	c.JSON(http.StatusOK, response)
+}
+
+/** (C)RUD für user */
+
+func GetUserByUUID(c *gin.Context, db *sql.DB) {
+
+	uuid := c.Param("uuid")
+	uuid = strings.Trim(uuid, " ")
+	if uuid == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "No uuid attatched"})
+		return
+	}
+
+	userData, err := GetUserByUUIDFromDB(uuid, db)
+	if errors.Is(err, sql.ErrNoRows) {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "shit hit the fan"})
+		return
+	}
+
+	response := struct {
+		UserData UserFromDB `json:"userData"`
+	}{
+		UserData: userData,
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func DeleteUserWithJWT(c *gin.Context, db *sql.DB) {
+	jwtToken := c.Request.Header.Get("bearer")
+	isValid, err := jwt.VerifyToken(jwtToken)
+	if !isValid {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "JWT Token is not valid"})
+	}
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "idk what happened"})
+		return
+	}
+	decodedJWT, err := jwt.DecodeBearer(jwtToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "idk what happened¨jwt decoding"})
+		return
+	}
+	// TODO: Do a email for validation and then handle the delete in another function
+	_, err = DeleteUserInDB(decodedJWT.UserId, db)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "user wasnt deleted"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "user deleted sucessfuly"})
 }

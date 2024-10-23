@@ -2,21 +2,22 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 )
 
 func GetUserIdByName(username string, db *sql.DB) (int, error) {
-	sqlStmt := "SELECT id FROM users WHERE username = $1"
-	row := db.QueryRow(sqlStmt, username)
+	query := "SELECT id FROM users WHERE username = $1"
+	row := db.QueryRow(query, username)
 	var userId int
 	err := row.Scan(&userId)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return -1, err
 	}
 	return userId, err
 }
 
 func GetUserByName(username string, db *sql.DB) (UserFromDB, error) {
-	sql := `SELECT 
+	query := `SELECT 
 				username,
 				email,
 				password,
@@ -26,27 +27,23 @@ func GetUserByName(username string, db *sql.DB) (UserFromDB, error) {
 				users
 			WHERE
 				username = $1`
-	row := db.QueryRow(sql, username)
+	row := db.QueryRow(query, username)
 	var userData UserFromDB
 	err := row.Scan(&userData.username, &userData.email, &userData.password_hash, &userData.user_id, &userData.uuid)
 	return userData, err
 }
 
-func GetUserPasswordHashByName(username string, db *sql.DB) (string, error) {
-	sql := "SELECT password_hash FROM user WHERE username = ?"
-	row := db.QueryRow(sql, username)
-	var passwordHash string
-	err := row.Scan(&passwordHash)
-	return passwordHash, err
-}
-
 func CreateUserInDB(userData DBNewUser, db *sql.DB) (int64, string, error) {
-	sql := "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, uuid"
+	query := `	INSERT INTO users 
+    				(username, email, password)
+				VALUES
+    				($1, $2, $3)
+     			RETURNING id, uuid`
 
 	var id int64
 	var uuid string
 
-	err := db.QueryRow(sql, userData.username, userData.email, userData.password_hash).Scan(&id, &uuid)
+	err := db.QueryRow(query, userData.username, userData.email, userData.password_hash).Scan(&id, &uuid)
 	if err != nil {
 		return -1, "", err
 	}
@@ -56,18 +53,52 @@ func CreateUserInDB(userData DBNewUser, db *sql.DB) (int64, string, error) {
 
 func GetUserById(id int, db *sql.DB) (UserFromDB, error) {
 
-	sql := `SELECT
+	query := `SELECT
     			username,
     			email,
     			password_hash,
-    			user_id
+    			user_id,
+    			uuid
     		FROM
-    		    user
+    		    users
     		WHERE 
-        		user_id = ?`
-	row := db.QueryRow(sql, id)
+        		user_id = $1`
+	row := db.QueryRow(query, id)
 
 	var userData UserFromDB
 	err := row.Scan(&userData.username, &userData.email, &userData.password_hash, &userData.user_id)
 	return userData, err
+}
+
+func GetUserByUUIDFromDB(uuid string, db *sql.DB) (UserFromDB, error) {
+
+	query := `SELECT
+    			username,
+    			email,
+    			password_hash,
+    			user_id,
+    			uuid
+    		FROM
+    		    users
+    		WHERE 
+        		uuid = $1`
+	row := db.QueryRow(query, uuid)
+
+	var userData UserFromDB
+	err := row.Scan(&userData.username, &userData.email, &userData.password_hash, &userData.user_id)
+	return userData, err
+}
+
+func DeleteUserInDB(id int, db *sql.DB) (bool, error) {
+	query := `	DELETE FROM 
+	           		users
+				WHERE 
+				    id = $1
+				`
+	_, err := db.Exec(query, id)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+
 }

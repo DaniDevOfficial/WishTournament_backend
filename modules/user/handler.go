@@ -3,7 +3,6 @@ package user
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func RegisterUserRoute(router *gin.Engine, db *sql.DB) {
@@ -12,8 +11,8 @@ func RegisterUserRoute(router *gin.Engine, db *sql.DB) {
 }
 
 func registerUserRoutes(router *gin.Engine, db *sql.DB) {
-	router.GET("/users/:id", func(c *gin.Context) {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error Creating User"})
+	router.GET("/users/:uuid", func(c *gin.Context) {
+		GetUserByUUID(c, db)
 	})
 
 }
