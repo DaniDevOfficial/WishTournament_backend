@@ -14,7 +14,12 @@ func registerUserRoutes(router *gin.Engine, db *sql.DB) {
 	router.GET("/users/:uuid", func(c *gin.Context) {
 		GetUserByUUID(c, db)
 	})
-
+	router.DELETE("/users/", func(c *gin.Context) {
+		DeleteUserWithJWT(c, db)
+	})
+	router.PUT("/users/name/", func(c *gin.Context) {
+		UpdateUsername(c, db)
+	})
 }
 
 func registerAuthRoutes(router *gin.Engine, db *sql.DB) {

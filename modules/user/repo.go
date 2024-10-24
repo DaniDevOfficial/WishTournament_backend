@@ -33,24 +33,6 @@ func GetUserByName(username string, db *sql.DB) (UserFromDB, error) {
 	return userData, err
 }
 
-func CreateUserInDB(userData DBNewUser, db *sql.DB) (int64, string, error) {
-	query := `	INSERT INTO users 
-    				(username, email, password)
-				VALUES
-    				($1, $2, $3)
-     			RETURNING id, uuid`
-
-	var id int64
-	var uuid string
-
-	err := db.QueryRow(query, userData.username, userData.email, userData.password_hash).Scan(&id, &uuid)
-	if err != nil {
-		return -1, "", err
-	}
-
-	return id, uuid, nil
-}
-
 func GetUserById(id int, db *sql.DB) (UserFromDB, error) {
 
 	query := `SELECT
@@ -87,6 +69,33 @@ func GetUserByUUIDFromDB(uuid string, db *sql.DB) (UserFromDB, error) {
 	var userData UserFromDB
 	err := row.Scan(&userData.username, &userData.email, &userData.password_hash, &userData.user_id)
 	return userData, err
+}
+
+func CreateUserInDB(userData DBNewUser, db *sql.DB) (int64, string, error) {
+	query := `	INSERT INTO users 
+    				(username, email, password)
+				VALUES
+    				($1, $2, $3)
+     			RETURNING id, uuid`
+
+	var id int64
+	var uuid string
+
+	err := db.QueryRow(query, userData.username, userData.email, userData.password_hash).Scan(&id, &uuid)
+	if err != nil {
+		return -1, "", err
+	}
+
+	return id, uuid, nil
+}
+
+func UpdateUsernameInDB(username string, userId int, db *sql.DB) error {
+	query := `	UPDATE users
+					username = $1
+				WHERE id = $2
+`
+	_, err := db.Exec(query, username, userId)
+	return err
 }
 
 func DeleteUserInDB(id int, db *sql.DB) (bool, error) {

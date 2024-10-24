@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"wishtournament/util/auth"
 	"wishtournament/util/hashing"
 	"wishtournament/util/jwt"
 )
@@ -142,20 +143,14 @@ func GetUserByUUID(c *gin.Context, db *sql.DB) {
 }
 
 func DeleteUserWithJWT(c *gin.Context, db *sql.DB) {
-	jwtToken := c.Request.Header.Get("bearer")
-	isValid, err := jwt.VerifyToken(jwtToken)
-	if !isValid {
+
+	decodedJWT, err := auth.GetJWTPayloadFromHeader(c)
+
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "JWT Token is not valid"})
-	}
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "idk what happened"})
 		return
 	}
-	decodedJWT, err := jwt.DecodeBearer(jwtToken)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "idk what happened¨jwt decoding"})
-		return
-	}
+
 	// TODO: Do a email for validation and then handle the delete in another function
 	_, err = DeleteUserInDB(decodedJWT.UserId, db)
 	if err != nil {
@@ -163,4 +158,31 @@ func DeleteUserWithJWT(c *gin.Context, db *sql.DB) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "user deleted sucessfuly"})
+}
+
+func UpdateUsername(c *gin.Context, db *sql.DB) {
+	var changeUsernameData RequestChangeUsername
+
+	if err := c.ShouldBindJSON(&changeUsernameData); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error decoding request"})
+		return
+	}
+
+	jwtTokenData, err := auth.GetJWTPayloadFromHeader(c)
+	if err != nil {
+		return
+	}
+	userId, err := GetUserIdByName(changeUsernameData.Username, db)
+
+	if userId == -1 || err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username is in use"})
+		return
+	}
+	err = UpdateUsernameInDB(changeUsernameData.Username, jwtTokenData.UserId, db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "we fucked up"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "username updated sucessfuly"})
 }

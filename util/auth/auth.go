@@ -2,12 +2,12 @@ package auth
 
 import (
 	"fmt"
-	"net/http"
+	"github.com/gin-gonic/gin"
 	"wishtournament/util/jwt"
 )
 
-func GetJWTTokenFromHeader(r *http.Request) (string, error) {
-	jwtString := r.Header.Get("Authorization")
+func GetJWTTokenFromHeader(c *gin.Context) (string, error) {
+	jwtString := c.Request.Header.Get("bearer")
 	if jwtString == "" {
 		return "", fmt.Errorf("missing authorization header")
 	}
@@ -24,14 +24,17 @@ func GetJWTTokenFromHeader(r *http.Request) (string, error) {
 // Returns:
 //
 //	(jwt.JWTPayload, error): Returns the decoded JWT payload if successful, otherwise returns an error.
-func GetJWTPayloadFromHeader(r *http.Request) (jwt.JWTPayload, error) {
-	jwtToken, err := GetJWTTokenFromHeader(r)
+func GetJWTPayloadFromHeader(c *gin.Context) (jwt.JWTPayload, error) {
+	jwtToken, err := GetJWTTokenFromHeader(c)
 	var jwtData jwt.JWTPayload
 	if err != nil {
 		return jwtData, err
 	}
 	valid, err := jwt.VerifyToken(jwtToken)
-	if err != nil || !valid {
+	if !valid {
+		return jwtData, fmt.Errorf("jwt token is not valid")
+	}
+	if err != nil {
 		return jwtData, err
 	}
 	jwtData, err = jwt.DecodeBearer(jwtToken)

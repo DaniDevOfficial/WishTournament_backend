@@ -5,7 +5,10 @@ type RequestNewUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
-
+type RequestChangeUsername struct {
+	Username string `json:"username"`
+	UUID     string `json:"uuid"`
+}
 type DBNewUser struct {
 	username      string
 	email         string
